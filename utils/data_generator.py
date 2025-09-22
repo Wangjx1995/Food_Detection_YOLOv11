@@ -29,6 +29,7 @@ from dataclasses import dataclass, field
 from typing import List, Tuple, Dict, Optional
 import numpy as np
 from PIL import Image, ImageEnhance, ImageFilter
+from pathlib import Path
 
 @dataclass
 class GenConfig:
@@ -341,7 +342,7 @@ def generate_dataset(cfg: GenConfig):
 
     names=[class_map[k] for k in sorted(class_map.keys())]
     out_root = os.path.abspath(cfg.out_dir) if cfg.yaml_abs else cfg.out_dir
-    def pjoin(*a): return os.path.as_posix(os.path.join(*a))
+    def pjoin(*a): return Path(a[0]).joinpath(*a[1:]).as_posix()
     yaml=(
         f"train: {pjoin(out_root,'images','train')}\n"
         f"val: {pjoin(out_root,'images','val')}\n"
