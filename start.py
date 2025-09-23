@@ -129,17 +129,27 @@ def main():
     if args.branch:
         clone_cmd = f"git clone -vv --branch {args.branch} {args.repo_url} '{args.repo_dir}'"
     run(clone_cmd)
+    
     run("python -m pip install -U pip")
+
+
     if not args.no_requirements:
         run(f"python -m pip install --no-cache-dir --upgrade --force-reinstall -r '{args.repo_dir}/requirements.txt'")
-    run("python -m pip uninstall -y numpy matplotlib scipy", check=False)
-    run("python -m pip install --no-cache-dir --upgrade --force-reinstall --no-deps numpy==2.1.2 matplotlib==3.9.2 scipy==1.14.1", check=True)
+
+
+    run("python - <<'PY'\n"
+    "import site, shutil, os, glob\n"
+    "sp = site.getsitepackages()[0]\n"
+    "for pat in ('numpy*','scipy*','matplotlib*'):\n"
+    "    for p in glob.glob(os.path.join(sp, pat)):\n"
+    "        print('Removing', p); shutil.rmtree(p, ignore_errors=True)\n"
+    "PY")
+    run("python -m pip install --no-cache-dir --upgrade --force-reinstall --no-deps numpy==2.1.2 matplotlib==3.9.2 scipy==1.14.1")
     run("python -m pip install -U ultralytics pillow pyyaml", check=False)
-    run('python -c "import os, pathlib; os.environ.setdefault(\'MPLCONFIGDIR\', \'/tmp/mpl\'); pathlib.Path(\'/tmp/mpl\').mkdir(exist_ok=True); print(\'MPLCONFIGDIR=\', os.environ[\'MPLCONFIGDIR\'])"')
-    run('python -c "import numpy,scipy,matplotlib; print(\'NumPy\', numpy.__version__, \'SciPy\', scipy.__version__, \'Matplotlib\', matplotlib.__version__)"')
-    run("python -m pip uninstall -y scipy", check=False)
-    run("python -m pip install --no-cache-dir --upgrade --force-reinstall --no-deps scipy==1.14.1", check=True)
-    run('python -c "import numpy,scipy; print(\'NumPy\',numpy.__version__,\'SciPy\',scipy.__version__); ''from scipy.ndimage import gaussian_filter1d; print(\'ndimage OK\')"')
+    run('python -c \"import numpy,scipy,matplotlib; '
+    'from scipy.ndimage import gaussian_filter1d; '
+    'print(\'NumPy\',numpy.__version__,\'SciPy\',scipy.__version__,\'Matplotlib\',matplotlib.__version__,\'- ndimage OK\')\"')
+
 
     
     if args.mode == "real":
