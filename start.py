@@ -129,15 +129,14 @@ def main():
     if args.branch:
         clone_cmd = f"git clone -vv --branch {args.branch} {args.repo_url} '{args.repo_dir}'"
     run(clone_cmd)
-
-    
     run("python -m pip install -U pip")
     if not args.no_requirements:
         run(f"python -m pip install --no-cache-dir --upgrade --force-reinstall -r '{args.repo_dir}/requirements.txt'")
-    run("python -m pip install -U ultralytics pillow pyyaml", check=False)
     run("python -m pip uninstall -y numpy matplotlib scipy", check=False)
     run("python -m pip install --no-cache-dir --upgrade --force-reinstall --no-deps numpy==2.1.2 matplotlib==3.9.2 scipy==1.14.1", check=True)
-    run("python -c \"import numpy,scipy,matplotlib; print('NumPy',numpy.__version__,'SciPy',scipy.__version__,'Matplotlib',matplotlib.__version__)\"")
+    run("python -m pip install -U ultralytics pillow pyyaml", check=False)
+    run('python -c "import os, pathlib; os.environ.setdefault(\'MPLCONFIGDIR\', \'/tmp/mpl\'); pathlib.Path(\'/tmp/mpl\').mkdir(exist_ok=True); print(\'MPLCONFIGDIR=\', os.environ[\'MPLCONFIGDIR\'])"')
+    run('python -c "import numpy,scipy,matplotlib; print(\'NumPy\', numpy.__version__, \'SciPy\', scipy.__version__, \'Matplotlib\', matplotlib.__version__)"')
 
     
     if args.mode == "real":
