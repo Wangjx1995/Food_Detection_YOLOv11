@@ -33,10 +33,48 @@ def run(cmd, check=True, cwd=None):
         raise SystemExit(r.returncode)
 
 def run_real(args):
-    from src.train import run as run_real
+    
+    from argparse import Namespace
+    from pathlib import Path
+    from src.train import run as train_run
+    import os, shutil
+
     print("✅ Entered REAL mode")
-    run_real(args)
+
+    repo_root = Path(args.repo_dir)
+
+    
+    if getattr(args, "real_drive", None):
+        real_link = repo_root / "real"
+        
+        if real_link.is_symlink():
+            real_link.unlink()
+        elif real_link.exists():
+            shutil.rmtree(real_link)
+        os.symlink(args.real_drive, real_link, target_is_directory=True)
+        dataset_yaml_path = real_link / "dataset.yaml"
+    else:
+        
+        if getattr(args, "dataset_yaml", None):
+            dataset_yaml_path = Path(args.dataset_yaml)
+        else:
+            dataset_yaml_path = repo_root / "real" / "dataset.yaml"
+
+    
+    cfg_path = repo_root / "configs" / "train.yaml"
+
+    
+    train_args = Namespace(
+        data=dataset_yaml_path.as_posix(),
+        cfg=cfg_path.as_posix(),
+    )
+
+
+    print(f"   • data = {train_args.data}")
+    print(f"   • cfg  = {train_args.cfg}")
+    results = train_run(train_args)
     print("🏁 REAL training finished.")
+    print(f"   • Saved to: {results.save_dir}")
 
 def run_mixed(args):
 
