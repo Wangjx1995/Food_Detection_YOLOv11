@@ -61,6 +61,8 @@ def run(args):
       if torch.cuda.is_available(): torch.cuda.manual_seed_all(seed)
     except Exception:
         pass
+    project_dir = _resolve(cfg.get("project", PROJECT_ROOT / "runs"))
+    run_name    = str(cfg.get("name", "real"))
     model = YOLO(model_path)
     results = model.train(
         data=data_yaml,
@@ -70,8 +72,8 @@ def run(args):
         patience=int(cfg.get("patience", 5)),
         workers=int(cfg.get("workers", 2)),
         device=dev,                                
-        project=str(cfg.get("project", "runs")),
-        name=str(cfg.get("name", "train")),
+        project=project_dir,
+        name=run_name,
         cache=cfg.get("cache", "ram"),
         plots=bool(cfg.get("plots", True)),
         seed=seed,
