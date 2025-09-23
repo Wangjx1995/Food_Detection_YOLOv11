@@ -65,7 +65,7 @@ def run(args):
     results = model.train(
         data=data_yaml,
         imgsz=int(cfg.get("imgsz", 512)),
-        epochs=int(cfg.get("epochs", 15)),
+        epochs=int(cfg.get("epochs", 1)),
         batch=int(cfg.get("batch", 16)),
         patience=int(cfg.get("patience", 5)),
         workers=int(cfg.get("workers", 2)),
