@@ -15,12 +15,20 @@ def _resolve(p: str | Path) -> str:
     return p.as_posix()
 
 def _device_str(cfg_val) -> str:
+    
+    if not torch.cuda.is_available():
+        return "cpu"
+
+    
     if cfg_val is None:
-        return "0" if torch.cuda.is_available() else "cpu"
+        return "0"  
     if isinstance(cfg_val, int):
         return "cpu" if cfg_val < 0 else str(cfg_val)
-    s = str(cfg_val).strip()
-    return "cpu" if s == "-1" else s
+
+    s = str(cfg_val).strip().lower()
+    if s in {"-1", "cpu"}:
+        return "cpu"
+    return s  
 
 def run(args):
     cfg_path  = _resolve(args.cfg)
@@ -36,7 +44,7 @@ def run(args):
         print(f"⚠️ weights not found at {model_path} (Ultralytics may download a default model)")
 
 
-    dev = _device_str(cfg.get("device", None))  
+    dev = _device_str(getattr(args, "device", None) or cfg.get("device", None)) 
 
     print("✅ REAL training (Ultralytics)")
     print(f"   • data   = {data_yaml}")
@@ -76,6 +84,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--data", default=(PROJECT_ROOT/"real/dataset.yaml").as_posix(), help="dataset yaml")
     ap.add_argument("--cfg",  default=(PROJECT_ROOT/"configs/train.yaml").as_posix(), help="training config yaml")
+    ap.add_argument("--device", default=None, help="CPU or GPU NUM")
     args = ap.parse_args()
     run(args)
 if __name__ == "__main__":
