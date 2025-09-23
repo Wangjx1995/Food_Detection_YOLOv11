@@ -1,10 +1,11 @@
 import argparse, yaml
 from ultralytics import YOLO
 from pathlib import Path
-import torch, os, sys
-
+import torch
+import os
+import sys
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-
+sys.path.insert(0, str(PROJECT_ROOT))
 def _resolve(p: str | Path) -> str:
     p = Path(p)
     if not p.is_absolute():
