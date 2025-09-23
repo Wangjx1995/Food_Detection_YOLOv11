@@ -24,6 +24,7 @@ p.add_argument("--no_requirements", action="store_true",
                help="跳过安装 requirements.txt")
 p.add_argument("--real_drive", default=None,
                help="Drive 上真实数据目录（含 images/labels/dataset.yaml），将链接到仓库 real/ 下。")               
+
 args = p.parse_args()
 
 def run(cmd, check=True, cwd=None):
@@ -107,6 +108,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--mode", choices=["real","mixed"], default="real")
     ap.add_argument("--data", "--dataset_yaml", dest="data", default=None,help="Path to dataset.yaml for REAL mode (overrides --real_root)")
+    ap.add_argument("--repo_dir", default="/content/Object_Detection_Tutorial",help="repo clone dir")
     ap.add_argument("--real_root",  default=str((PROJECT_ROOT/"real").resolve()))
     ap.add_argument("--assets_dir", default=str((PROJECT_ROOT/"assets").resolve()))
     ap.add_argument("--out_base",   default=str((PROJECT_ROOT/"out_epoch").resolve()))
