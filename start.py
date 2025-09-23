@@ -149,7 +149,7 @@ def main():
     "PY")
     run("python -m pip install --no-cache-dir --upgrade --force-reinstall --no-deps numpy==2.1.2 matplotlib==3.9.2 scipy==1.14.1")
     run("python -m pip install -U ultralytics pillow pyyaml", check=False)
-    run('python -c \"import numpy,scipy,matplotlib; '
+    run('MPLBACKEND=Agg python -c \"import numpy,scipy,matplotlib; '
     'from scipy.ndimage import gaussian_filter1d; '
     'print(\'NumPy\',numpy.__version__,\'SciPy\',scipy.__version__,\'Matplotlib\',matplotlib.__version__,\'- ndimage OK\')\"')
 
