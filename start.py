@@ -123,3 +123,6 @@ elif args.mode == "mix":
     run(MIX_CMD, cwd=REPO_DIR)
 
 print("\n✅ All done.")
+
+if __name__ == "__main__":
+    main()
