@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import os, subprocess, argparse
 from pathlib import Path
+import sys
 
 DRIVE_MOUNT = "/content/drive"
 REPO_URL    = "https://github.com/Wangjx1995/Object_Detection_Tutorial.git"
