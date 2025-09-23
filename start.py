@@ -29,6 +29,56 @@ def run(cmd, check=True, cwd=None):
     if check and r.returncode != 0:
         raise SystemExit(r.returncode)
 
+def run_real(args):
+    # 你的全真实训练入口（保持原状）
+    from src.train import run as run_real  # 举例
+    print("✅ Entered REAL mode")
+    run_real(args)  # 或者调用你原来的 real 训练脚本
+    print("🏁 REAL training finished.")
+
+def run_mixed(args):
+    # 直接调用 train_mix.py 的 main，并透传路径参数
+    from src.train_mix import main as run_mix
+    print("✅ Entered MIXED mode")
+    print(f"   • real_root   = {args.real_root}")
+    print(f"   • assets_dir  = {args.assets_dir}")
+    print(f"   • out_base    = {args.out_base}")
+    print(f"   • weights     = {args.weights}")
+    print(f"   • device      = {args.device}")
+    try:
+
+        sys_argv_backup = list(sys.argv)
+        sys.argv = [
+            sys.argv[0],
+            "--real_root",   args.real_root,
+            "--assets_dir",  args.assets_dir,
+            "--out_base",    args.out_base,
+            "--weights",     args.weights,
+            "--device",      args.device,
+        ] + (["--mix_valtest"] if args.mix_valtest else [])
+        run_mix()  
+    finally:
+        sys.argv = sys_argv_backup
+    print("🏁 MIXED training finished.")
+    print("   • Check weights & metrics under: runs/mix/exp*")
+    print("   • Per-epoch lists & YAML under: epoch_work/")
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--mode", choices=["real","mixed"], default="real")
+    ap.add_argument("--real_root",  default=str((PROJECT_ROOT/"real").resolve()))
+    ap.add_argument("--assets_dir", default=str((PROJECT_ROOT/"assets").resolve()))
+    ap.add_argument("--out_base",   default=str((PROJECT_ROOT/"out_epoch").resolve()))
+    ap.add_argument("--weights",    default=str((PROJECT_ROOT/"yolo11n.pt").resolve()))
+    ap.add_argument("--device",     default="0")
+    ap.add_argument("--mix_valtest", action="store_true")
+    args = ap.parse_args()
+
+    if args.mode == "mixed":
+        run_mixed(args)
+    else:
+        run_real(args)
+
 
 Path("/content").mkdir(exist_ok=True)
 os.chdir("/content")
@@ -39,7 +89,7 @@ if not args.skip_drive:
         from google.colab import drive
         drive.mount(DRIVE_MOUNT, force_remount=False)
     except Exception:
-        print("ℹ️ 若在子进程中运行：请先在单元格执行 drive.mount('/content/drive')")
+        print("If running in a subprocess, please first run drive.mount('/content/drive') in a notebook cell.")
 
 
 run(f"rm -rf '{REPO_DIR}'", check=False)
