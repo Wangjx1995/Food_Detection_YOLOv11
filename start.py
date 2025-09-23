@@ -4,14 +4,14 @@
 import os, sys, subprocess, argparse
 from pathlib import Path
 
-def run(cmd: str, check: bool=True, cwd: str|None=None):
+def run(cmd: str, check: bool = True, cwd: str | None = None):
     print(f"$ {cmd}")
     r = subprocess.run(cmd, shell=True, cwd=cwd, text=True)
     if check and r.returncode != 0:
         raise SystemExit(r.returncode)
 
 def run_real(args):
-    
+    """仅触发一次全真实训练：import 调用 src/train.run(args)。"""
     from argparse import Namespace
     from pathlib import Path
 
@@ -28,7 +28,8 @@ def run_real(args):
             if real_link.is_symlink():
                 real_link.unlink()
             elif real_link.exists():
-                import shutil; shutil.rmtree(real_link)
+                import shutil
+                shutil.rmtree(real_link)
             os.symlink(args.real_drive, real_link, target_is_directory=True)
             dataset_yaml = real_link / "dataset.yaml"
         else:
@@ -50,7 +51,7 @@ def run_real(args):
     print("🏁 REAL training finished.")
 
 def run_mixed(args):
-
+    
     repo_root = Path(args.repo_dir).resolve()
     real_root  = args.real_root  or (repo_root / "real").as_posix()
     assets_dir = args.assets_dir or (repo_root / "assets").as_posix()
@@ -85,21 +86,22 @@ def run_mixed(args):
 def main():
     ap = argparse.ArgumentParser(description="Colab starter for Object_Detection_Tutorial")
     # BASIC
-    ap.add_argument("--mode", choices=["real","mixed"], default="real")
+    ap.add_argument("--mode", choices=["real", "mixed"], default="real")
     ap.add_argument("--skip_drive", action="store_true", help="不挂载 Google Drive")
     ap.add_argument("--drive_mount", default="/content/drive", help="Drive 挂载点")
     ap.add_argument("--repo_url", default="https://github.com/Wangjx1995/Object_Detection_Tutorial.git")
     ap.add_argument("--repo_dir", default="/content/Object_Detection_Tutorial")
     ap.add_argument("--branch", default=None)
-    ap.add_argument("--no_requirements", action="store_true",help="跳过安装 requirements.txt（已手动对齐 numpy/matplotlib 时很有用）")
+    ap.add_argument("--no_requirements", action="store_true",
+                    help="跳过安装 requirements.txt（已手动对齐 numpy/matplotlib 时很有用）")
 
-    # REAL 
+    # REAL
     ap.add_argument("--data", "--dataset_yaml", dest="data", default=None,
                     help="真实数据集 dataset.yaml 的绝对路径（优先级最高）")
     ap.add_argument("--real_drive", default=None,
                     help="真实数据根目录（含 images/labels/dataset.yaml）。若提供，将软链为 repo_dir/real/")
 
-    # MIXED 
+    # MIXED
     ap.add_argument("--real_root",  default=None)
     ap.add_argument("--assets_dir", default=None)
     ap.add_argument("--out_base",   default=None)
@@ -131,18 +133,17 @@ def main():
     
     run("python -m pip install -U pip")
     if not args.no_requirements:
-    run(f"python -m pip install --no-cache-dir --upgrade --force-reinstall -r '{args.repo_dir}/requirements.txt'")
+        run(f"python -m pip install --no-cache-dir --upgrade --force-reinstall -r '{args.repo_dir}/requirements.txt'")
     run("python -m pip install -U ultralytics pillow pyyaml", check=False)
     run("python -m pip uninstall -y numpy matplotlib scipy", check=False)
     run("python -m pip install --no-cache-dir --upgrade --force-reinstall --no-deps numpy==2.1.2 matplotlib==3.9.2 scipy==1.14.1", check=True)
     run("python -c \"import numpy,scipy,matplotlib; print('NumPy',numpy.__version__,'SciPy',scipy.__version__,'Matplotlib',matplotlib.__version__)\"")
 
-
     
- if args.mode == "real":
-    run_real(args)
- else:
-    run_mixed(args)
+    if args.mode == "real":
+        run_real(args)
+    else:
+        run_mixed(args)
 
     print("\n✅ All done.")
 
