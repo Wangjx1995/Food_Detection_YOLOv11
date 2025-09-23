@@ -137,6 +137,9 @@ def main():
     run("python -m pip install -U ultralytics pillow pyyaml", check=False)
     run('python -c "import os, pathlib; os.environ.setdefault(\'MPLCONFIGDIR\', \'/tmp/mpl\'); pathlib.Path(\'/tmp/mpl\').mkdir(exist_ok=True); print(\'MPLCONFIGDIR=\', os.environ[\'MPLCONFIGDIR\'])"')
     run('python -c "import numpy,scipy,matplotlib; print(\'NumPy\', numpy.__version__, \'SciPy\', scipy.__version__, \'Matplotlib\', matplotlib.__version__)"')
+    run("python -m pip uninstall -y scipy", check=False)
+    run("python -m pip install --no-cache-dir --upgrade --force-reinstall --no-deps scipy==1.14.1", check=True)
+    run('python -c "import numpy,scipy; print(\'NumPy\',numpy.__version__,\'SciPy\',scipy.__version__); ''from scipy.ndimage import gaussian_filter1d; print(\'ndimage OK\')"')
 
     
     if args.mode == "real":
