@@ -9,7 +9,7 @@ os.environ["MPLBACKEND"] = "Agg"
 os.environ.setdefault("MPLCONFIGDIR", "/tmp/mpl")
 Path("/tmp/mpl").mkdir(exist_ok=True)
 
-# ✅ 禁用 user-site，避免 ~/.local 里旧包“抢上车”
+# 禁用 user-site，避免 ~/.local 里的旧包被加载
 os.environ["PYTHONNOUSERSITE"] = "1"
 
 def run(cmd: str, check: bool = True, cwd: str | None = None):
@@ -18,7 +18,7 @@ def run(cmd: str, check: bool = True, cwd: str | None = None):
     if check and r.returncode != 0:
         raise SystemExit(r.returncode)
 
-# 小助手：更安全地嵌入多行 Python（避免换行被写成 \n）
+# 安全的多行 Python here-doc 执行助手（避免 \n 被当作字面量）
 def run_py(code: str, env: str = "", cwd: str | None = None, check: bool = True):
     prefix = (env + " ") if env else ""
     run(prefix + "python - <<'PY'\n" + code + "\nPY", check=check, cwd=cwd)
@@ -219,85 +219,3 @@ def main():
 
     # ========= 数值栈：彻底清理 + 固定版本重装 =========
     # 先卸载（忽略失败）
-    run("python -m pip uninstall -y numpy scipy matplotlib ultralytics", check=False)
-
-    # 物理清理：site-packages + user-site + sysconfig 的 purelib/platlib
-    run_py(
-        "import site, sysconfig, shutil, os, glob\n"
-        "dirs = set()\n"
-        "dirs.update(site.getsitepackages())\n"
-        "try:\n"
-        "    dirs.add(site.getusersitepackages())\n"
-        "except Exception:\n"
-        "    pass\n"
-        "paths = sysconfig.get_paths()\n"
-        "for k in ('purelib','platlib'):\n"
-        "    p = paths.get(k)\n"
-        "    if p: dirs.add(p)\n"
-        "print('🔧 purge dirs:', dirs)\n"
-        "PATTERNS = ('numpy*','scipy*','matplotlib*')\n"
-        "for sp in sorted(dirs):\n"
-        "    for pat in PATTERNS:\n"
-        "        for p in glob.glob(os.path.join(sp, pat)):\n"
-        "            print('Removing', p); shutil.rmtree(p, ignore_errors=True)\n"
-    )
-
-    # 固定版本重装（wheel-only，避免本地编译；不解析依赖链以免顶掉固定版本）
-    run(
-        "python -m pip install --only-binary=:all: --no-cache-dir --upgrade --force-reinstall --no-deps "
-        "numpy==2.1.2 scipy==1.14.1 matplotlib==3.9.2"
-    )
-
-    # 检测是否 vendored ultralytics（项目根或 src/ 下均支持）
-    repo_root = Path(args.repo_dir)
-    vendored_parent = None
-    for cand in [repo_root / "ultralytics", repo_root / "src" / "ultralytics"]:
-        if (cand / "__init__.py").exists():
-            vendored_parent = cand.parent  # 项目根 或 项目根/src
-            break
-
-    # 安装 ultralytics / 依赖（不关闭绘图）
-    if vendored_parent:
-        print(f"🔒 Detected vendored ultralytics at: {(vendored_parent/'ultralytics').as_posix()} (skip pip ultralytics)")
-        run("python -m pip install -U pillow pyyaml", check=False)
-        # 让后续子进程优先从本地导入
-        os.environ["PYTHONPATH"] = f"{vendored_parent.as_posix()}:{os.environ.get('PYTHONPATH','')}"
-    else:
-        # 装官方包时使用 --no-deps，避免它把 numpy/scipy 又升级
-        run("python -m pip install -U --no-deps ultralytics", check=False)
-        run("python -m pip install -U pillow pyyaml", check=False)
-
-    # 数值栈健康自检（包含 ndimage）——⚠️ 这里用 run_py，是真换行
-    run_py(
-        "import numpy, scipy, matplotlib, inspect\n"
-        "from scipy.ndimage import gaussian_filter1d\n"
-        "print(f\"NumPy {numpy.__version__} | SciPy {scipy.__version__} | Matplotlib {matplotlib.__version__} - ndimage OK\")\n"
-        "print('numpy at:', inspect.getfile(numpy))\n"
-        "print('scipy at:', inspect.getfile(scipy))\n"
-        "print('mpl   at:', inspect.getfile(matplotlib))\n",
-        env="MPLBACKEND=Agg"
-    )
-
-    # 额外：打印将要使用的 ultralytics 来源（在仓库根执行以命中本地）
-    run_py(
-        "import ultralytics\n"
-        "print('✅ ultralytics from:', ultralytics.__file__)\n"
-        "try:\n"
-        "  from ultralytics import __version__ as V\n"
-        "  print('   version:', V)\n"
-        "except Exception:\n"
-        "  pass\n",
-        cwd=repo_root.as_posix()
-    )
-    # ========= /数值栈 =========
-
-    # 分支执行
-    if args.mode == "real":
-        run_real(args)
-    else:
-        run_mixed(args)
-
-    print("\n✅ All done.")
-
-if __name__ == "__main__":
-    main()
