@@ -198,7 +198,7 @@ def main():
         # 训练（每个 epoch 按当前混合列表训练 2 个内部 epoch，可自行调大）
         model.train(
             data=str(ds_yaml),
-            epochs=2,
+            epochs=5,
             imgsz=IMGSZ,
             batch=BATCH,
             device=str(DEVICE),
