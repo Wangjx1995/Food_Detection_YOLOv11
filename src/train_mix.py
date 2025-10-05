@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Per-epoch data mixing driver for Ultralytics YOLOv11:
-- Keeps 70% real + 30% synthetic for train/val/test each epoch
+- Keeps 70% real + 30% synthetic for train each epoch
 - Regenerates synthetic split-wise every epoch
 - No change to YOLO source code required
 
@@ -25,7 +25,7 @@ REAL_ROOT = PROJECT_ROOT / "real"                # your real YOLO dataset root
 ASSETS_DIR = PROJECT_ROOT / "assets"             # generator assets root
 OUT_BASE  = PROJECT_ROOT / "out_epoch"           # synthetic output base
 MODEL_WEIGHTS = PROJECT_ROOT / "yolo11n.pt"      # or your checkpoint
-EPOCHS = 3
+EPOCHS = 20
 IMGSZ = 640
 BATCH = 16
 DEVICE = "0"                        # -1 for CPU; "0,1" for multi-GPU
@@ -195,7 +195,7 @@ def main():
 
         model.train(
             data=str(ds_yaml),
-            epochs=1,
+            epochs=2,
             imgsz=IMGSZ,
             batch=BATCH,
             device=str(DEVICE),
