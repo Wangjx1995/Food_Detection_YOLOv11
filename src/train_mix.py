@@ -31,7 +31,7 @@ EPOCHS = 20
 IMGSZ = 640
 BATCH = 16
 DEVICE = "0"                        # -1 for CPU; "0,1" for multi-GPU
-MIX_VALTEST = False                 # <-- 默认不混 val/test；如需试验，运行时加 --mix_valtest
+MIX_VALTEST = False                 
 REAL_FRACTION = 0.70
 SYN_FRACTION  = 0.30
 
@@ -113,7 +113,7 @@ def main():
     OUT_BASE      = Path(args.out_base)
     MODEL_WEIGHTS = args.weights
     DEVICE        = args.device
-    # 运行时传 --mix_valtest 则启用；默认 False -> val/test 全真
+    
     MIX_VALTEST   = bool(args.mix_valtest)
 
     from ultralytics import YOLO
@@ -138,9 +138,9 @@ def main():
             shutil.rmtree(ep_out)
         ep_out.mkdir(parents=True, exist_ok=True)
 
-        # 真实数量
+        
         R = {sp: len(real_lists[sp]) for sp in splits}
-        # 合成数量：只对 train 计算；val/test 默认 0，除非启用 MIX_VALTEST
+        
         S = {sp: (synth_needed(R[sp]) if (sp == "train" or MIX_VALTEST) else 0) for sp in splits}
         print(f"[counts] real={R} -> synth={S}")
 
@@ -154,7 +154,7 @@ def main():
                 assets_dir=str(ASSETS_DIR),
                 out_dir=str(ep_out),
                 image_size=IMAGE_SIZE,
-                # 仅 train 生成合成；val/test 仅在 MIX_VALTEST 时生成
+                
                 train_count=S_sp if sp == 'train' else 0,
                 val_count=S_sp if (sp == 'val'  and MIX_VALTEST) else 0,
                 test_count=S_sp if (sp == 'test' and MIX_VALTEST) else 0,
@@ -168,16 +168,16 @@ def main():
             )
             generate_dataset(cfg)
 
-            # 只在 train（或启用 MIX_VALTEST）进行真实+合成的混合
+            
             synth_dir = ep_out / "images" / sp
             synth_imgs = sorted(synth_dir.glob("*.*")) if (S_sp > 0 and synth_dir.exists()) else []
             if sp == 'train' or MIX_VALTEST:
                 mixed = list(real_lists[sp]) + synth_imgs
             else:
-                mixed = list(real_lists[sp])  # 保持全真
+                mixed = list(real_lists[sp])  
             mix[sp] = mixed
 
-        # 写入列表与 YAML
+        
         tl = workdir / f"train_ep{ep:03d}.txt"
         vl = workdir / f"val_ep{ep:03d}.txt"
         te = workdir / f"test_ep{ep:03d}.txt"
@@ -195,7 +195,7 @@ def main():
         ds_yaml = workdir / f"dataset_ep{ep:03d}.yaml"
         ds_yaml.write_text(yaml.safe_dump(ds_meta, allow_unicode=True, sort_keys=False), encoding="utf-8")
 
-        # 训练（每个 epoch 按当前混合列表训练 2 个内部 epoch，可自行调大）
+        
         model.train(
             data=str(ds_yaml),
             epochs=5,
