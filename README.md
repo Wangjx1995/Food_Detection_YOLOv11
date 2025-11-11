@@ -91,7 +91,7 @@ Food_Detection-yolov11/
 
 
 <div align="medium">
-    <img src="images/Dataset.jpg" alt="YOLO" width="100%">
+    <img src="images/Dataset.png" alt="YOLO" width="100%">
 </div>
 
 ## 4. アノテーションの実施
