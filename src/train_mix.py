@@ -27,7 +27,7 @@ REAL_ROOT = PROJECT_ROOT / "real"                # your real YOLO dataset root
 ASSETS_DIR = PROJECT_ROOT / "assets"             # generator assets root
 OUT_BASE  = PROJECT_ROOT / "out_epoch"           # synthetic output base
 MODEL_WEIGHTS = PROJECT_ROOT / "yolo11n.pt"      # or your checkpoint
-EPOCHS = 20
+EPOCHS = 100
 IMGSZ = 640
 BATCH = 16
 DEVICE = "0"                        # -1 for CPU; "0,1" for multi-GPU
@@ -198,7 +198,7 @@ def main():
         
         model.train(
             data=str(ds_yaml),
-            epochs=5,
+            epochs=1,
             imgsz=IMGSZ,
             batch=BATCH,
             device=str(DEVICE),
